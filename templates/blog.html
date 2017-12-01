@@ -6,6 +6,81 @@
 	{% block headCss %}
 		<link rel="stylesheet" href="{{ url_for('static', filename='stylesheets/base.css')}}" type="text/css">
 	{% endblock %}
+	<script type="text/javascript">
+		var mongo_id = ""
+		function editClick(title,post){
+			console.log(title)
+			console.log(post)
+			document.getElementById("input-title").value = title;
+		    document.getElementById("input-post").value = post;
+		    document.getElementById("input-save").removeAttribute("hidden");
+		    var xmlhttp = new XMLHttpRequest();
+			var title = document.getElementById("input-title").value;
+			var post = document.getElementById("input-post").value;
+		    var url = '/get_id?title='+title+'&post='+post;
+
+		    xmlhttp.onreadystatechange = function () {
+		        if (xmlhttp.readyState == XMLHttpRequest.DONE) {
+		            if (xmlhttp.status == 200) {
+		            	var resData = JSON.parse(xmlhttp.responseText)
+		                console.log(resData)
+		                mongo_id = resData[0]._id
+		                console.log(mongo_id)
+		                // location.reload()
+		            } else if (xmlhttp.status == 400) {
+		                console.log('There was an error 400');
+		            } else {
+		                console.log('something else other than 200 was returned');
+		            }
+		        }
+		    };
+		    xmlhttp.open("GET", url, true);
+		    xmlhttp.send()
+		}
+		function saveEdit(){
+			var xmlhttp = new XMLHttpRequest();
+			var title = document.getElementById("input-title").value;
+			var post = document.getElementById("input-post").value;
+		    var url = '/edit_post?title='+title+'&post='+post+'&mongo_id='+mongo_id;
+
+		    xmlhttp.onreadystatechange = function () {
+		        if (xmlhttp.readyState == XMLHttpRequest.DONE) {
+		            if (xmlhttp.status == 200) {
+		            	var resData = JSON.parse(xmlhttp.responseText)
+		                console.log(resData)
+		                location.reload()
+		            } else if (xmlhttp.status == 400) {
+		                console.log('There was an error 400');
+		            } else {
+		                console.log('something else other than 200 was returned');
+		            }
+		        }
+		    };
+		    xmlhttp.open("GET", url, true);
+		    xmlhttp.send()
+
+		}
+
+		function deleteClick(title,post){
+			var xmlhttp = new XMLHttpRequest();
+		    var url = '/delete_post?title='+title+'&post='+post;
+
+		    xmlhttp.onreadystatechange = function () {
+		        if (xmlhttp.readyState == XMLHttpRequest.DONE) {
+		            if (xmlhttp.status == 200) {
+		                location.reload()
+		            } else if (xmlhttp.status == 400) {
+		                console.log('There was an error 400');
+		            } else {
+		                console.log('something else other than 200 was returned');
+		            }
+		        }
+		    };
+		    xmlhttp.open("GET", url, true);
+		    xmlhttp.send()
+		}
+
+	</script>
 </head>
 	<body class="body">
 		<h2>Welcome to your blog</h2>
@@ -21,6 +96,7 @@
 				<input type="submit" id="input-submit" value="POST"></input>
 			</div>
 		</form>
+		<input class="blog-border" type="submit" id="input-save" onclick="saveEdit()" value="SAVE" hidden></input>
 
 		{% for post in posts %}
 			<div class="blog-border">
@@ -30,6 +106,8 @@
 				<div class="post">
 					<div> {{ post.post }} </div>
 				</div>
+				<input type="submit" id="input-edit" onclick="editClick('{{post.title}}', '{{post.post}}')" value="EDIT"></input>
+				<input type="submit" id="input-delete" onclick="deleteClick('{{post.title}}', '{{post.post}}')" value="DELETE"></input>
 		  	</div>
 		{% endfor %}
 	

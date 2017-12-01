@@ -15,7 +15,7 @@ class JSONEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, o)
 
 
-client = MongoClient('mongodb://backend:27017/dockerdemo')
+client = MongoClient('mongodb://backend:24242/dockerdemo')
 db = client.blogpostDB
 
 app = Flask(__name__)
@@ -41,8 +41,6 @@ def remove_all():
     return redirect(url_for('landing_page'))
 
 
-
-
 ## Services
 
 @app.route("/posts", methods=['GET'])
@@ -66,6 +64,43 @@ def new():
     posts = [post for post in _posts]
 
     return JSONEncoder().encode(posts[-1])
+
+
+@app.route("/edit_post", methods=['GET'])
+def edit_post():
+    # _posts = db.blogpostDB.find()
+    titleData = request.args.get('title')
+    postData = request.args.get('post')
+    _id = request.args.get('mongo_id')
+    _posts = db.blogpostDB.find({'_id':ObjectId(_id)})
+    posts = [post for post in _posts]
+    db.blogpostDB.update_one(
+        {'_id':ObjectId(_id)}, 
+        {"$set": 
+        {'title':titleData,'post':postData}
+        })
+    return JSONEncoder().encode(posts)
+
+
+@app.route("/get_id", methods=['GET'])
+def get_id():
+    # _posts = db.blogpostDB.find()
+    titleData = request.args.get('title')
+    postData = request.args.get('post')
+
+    _posts = db.blogpostDB.find({'title':titleData,'post':postData})
+    posts = [post for post in _posts]
+    return JSONEncoder().encode(posts)
+
+
+
+@app.route("/delete_post", methods=['GET'])
+def delete_post():
+    titleData = request.args.get('title')
+    postData = request.args.get('post')
+    
+    db.blogpostDB.delete_one({'title':titleData,'post':postData})
+    return redirect(url_for('landing_page'))
 
 
 ### Insert function here ###
